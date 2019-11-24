@@ -147,12 +147,12 @@ def setTimeSeriesIndex(*columnName, inplace=True):
 
         if inplace:
             df["_dt"] = pd.to_datetime(datetime_str)
-            df.set_index("_dt", inplace=True)
+            df.set_index("_dt", inplace=inplace)
         else:
             df["_dt"] = pd.to_datetime(datetime_str)
             _dt = pd.to_datetime(datetime_str)
             df["_datetime"] = pd.to_datetime(datetime_str)
-            df.set_index("_dt", inplace=True)
+            df.set_index("_dt", inplace=inplace)
         return df
     return f
 
