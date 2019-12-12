@@ -382,12 +382,15 @@ def _i_position_selector(position_type):
 
 def band_factor(
     bands: List[Tuple[Number, Number]],
-    position: str="index"
+    position: str="index",
+    **kwargs
 )->Callable[[pd.DataFrame, Optional[str]], Tuple[pd.Series, List[str]]]:
     """
     Limit of bands must increase monotonic.
 
     Domains are (lower, upper], or lower < x <= upper.
+
+    if kwarg that right=False is given, domains are [lower, upper).
 
     Usage
     -----
@@ -406,7 +409,7 @@ def band_factor(
 
         target = df if selector is None else df[selector]
 
-        return (pd.cut(target, cut_array, labels=factor), factor, position)
+        return (pd.cut(target, cut_array, labels=factor, **kwargs), factor, position)
     return apply_to_df
 
 
