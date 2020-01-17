@@ -1,11 +1,12 @@
 import pandas as pd
 import math
 import numpy as np
-from typing import List, Tuple, Iterator, TypeVar, Union, Callable, Optional
+from typing import Callable, List, Tuple, Iterator, TypeVar, Union, Callable, Optional, Hashable
 from functools import reduce
 
 T = TypeVar('T')
-Number = Union[int, float, complex]
+Number = TypeVar('Number',int, float)
+DataFrameTransformer = Callable[[pd.DataFrame], pd.DataFrame]
 
 
 def identity(a): return a
@@ -17,10 +18,10 @@ def time_range(f):
     return wrap
 
 
-_invalid_range = [None, pd.NaT, np.nan]
+_invalid_range = [None, pd.NaT, np.nan, math.nan]
 
 
-def right_open_interval(lower, upper):
+def right_open_interval(lower, upper)->DataFrameTransformer:
     def apply(df: pd.DataFrame, column=None) -> pd.DataFrame:
         dt = df.index if column is None else df[column]
         if lower not in _invalid_range and upper not in _invalid_range:
@@ -34,7 +35,7 @@ def right_open_interval(lower, upper):
     return apply
 
 
-def left_open_interval(lower, upper):
+def left_open_interval(lower, upper)->DataFrameTransformer:
     def apply(df: pd.DataFrame, column=None) -> pd.DataFrame:
         dt = df.index if column is None else df[column]
         if lower not in _invalid_range and upper not in _invalid_range:
@@ -48,12 +49,10 @@ def left_open_interval(lower, upper):
     return apply
 
 
-def open_interval(lower, upper):
+def open_interval(lower, upper)->DataFrameTransformer:
     def apply(df: pd.DataFrame, column=None) -> pd.DataFrame:
         dt = df.index if column is None else df[column]
-        print(df)
-        print(dt)
-        print()
+
         if lower not in _invalid_range and upper not in _invalid_range:
             return df[(lower < dt) & (dt < upper)]
         elif lower not in _invalid_range:
@@ -65,7 +64,7 @@ def open_interval(lower, upper):
     return apply
 
 
-def close_interval(lower, upper):
+def close_interval(lower, upper)->DataFrameTransformer:
     def apply(df: pd.DataFrame, column=None) -> pd.DataFrame:
         dt = df.index if column is None else df[column]
         if lower not in _invalid_range and upper not in _invalid_range:
@@ -79,7 +78,7 @@ def close_interval(lower, upper):
     return apply
 
 
-def filter_between(*range, open_left=False, open_right=True):
+def filter_between(*range, open_left=False, open_right=True)->DataFrameTransformer:
 
     if len(range) >= 2:
         lower = range[0]
@@ -100,7 +99,7 @@ def filter_between(*range, open_left=False, open_right=True):
         return close_interval(lower, upper)
 
 
-def to_datetime(*column_names):
+def to_datetime(*column_names)->DataFrameTransformer:
     columns = column_names[0] if type(
         column_names[0]) == list else list(column_names)
 
@@ -292,8 +291,8 @@ def create_complete_block_designed_df(mat_selector, group_selector, block_select
     return apply
 
 
-def create_bands(ini: float, fin: float, step: float, with_outer: bool=True)\
-        -> List[Tuple[Number, Number]]:
+def create_bands(ini: Number, fin: Number, step: Number, with_outer: bool=True)\
+        -> List[Tuple[float, float]]:
     """
     Create list of tuples defining lower and upper limits.
 
@@ -348,7 +347,7 @@ def _get_factor_of_bands(bands: List[Tuple[Number, Number]])->List[str]:
     return list(map(stringifier, bands))
 
 
-def _get_mean_of_bands(bands: List[Tuple[Number, Number]])->List[Number]:
+def _get_mean_of_bands(bands: List[Tuple[Number, Number]])->List[float]:
     def apply(band: Tuple[Number, Number])->Number:
         fst, snd = band
         return 0.5*(fst+snd)
