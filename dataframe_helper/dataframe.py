@@ -5,7 +5,7 @@ from typing import Callable, List, Tuple, Iterator, TypeVar, Union, Callable, Op
 from functools import reduce
 
 T = TypeVar('T')
-Number = TypeVar('Number',int, float)
+Number = TypeVar('Number', int, float)
 DataFrameTransformer = Callable[[pd.DataFrame], pd.DataFrame]
 
 
@@ -79,6 +79,16 @@ def close_interval(lower, upper)->DataFrameTransformer:
 
 
 def filter_between(*range, open_left=False, open_right=True)->DataFrameTransformer:
+    """
+    filter_between(lower, upper) -> [lower, upper)
+    filter_between(lower, None) -> [lower, inf)
+    filter_between(None, upper) -> [inf, upper)
+
+    filter_between(lower, upper, open_right=False) -> [lower, upper]
+    filter_between(lower, upper, open_left=True, open_right=False) -> (lower, upper]
+    filter_between([lower, upper]) -> [lower, upper)
+    filter_between([lower, None]) -> [lower, inf)
+    """
 
     if len(range) >= 2:
         lower = range[0]
@@ -100,12 +110,23 @@ def filter_between(*range, open_left=False, open_right=True)->DataFrameTransform
 
 
 def to_datetime(*column_names)->DataFrameTransformer:
+    """
+    Convert a column or columns to datetime expression of pandas.
+
+    If multiple column names are indicated, the datetime expression
+        is made by concatenating strings in the columns.
+
+
+    to_datetime("col")(df)
+    to_datetime("col1", "col2")
+
+    """
     columns = column_names[0] if type(
         column_names[0]) == list else list(column_names)
 
     def f(df: pd.DataFrame)->pd.DataFrame:
         datetime_str = reduce(
-            lambda a, e: a+" "+e,
+            lambda a, e: a+" "+e.apply(str),
             [df[c] for c in columns],
             ""
         )
@@ -114,7 +135,7 @@ def to_datetime(*column_names)->DataFrameTransformer:
     return f
 
 
-def setTimeSeriesIndex(*columnName, inplace=True):
+def setTimeSeriesIndex(*columnName, name=None, inplace=True):
     """
     Set time series index to pandas.DataFrame
     datatime object is created from a column or two columns of
@@ -131,6 +152,9 @@ def setTimeSeriesIndex(*columnName, inplace=True):
     Returns
     -------
     Callable[[pandas.DataFrame], pandas.DataFrame]
+
+    TODO
+    * Make user can set new column name by "name" parameter.
 
     """
 
