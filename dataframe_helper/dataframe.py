@@ -164,7 +164,7 @@ def setTimeSeriesIndex(*columnName, name=None, inplace=True):
     def f(df: pd.DataFrame)->pd.DataFrame:
         datetime_str = reduce(
             lambda a, e: a+" "+e,
-            [df[c] for c in columns],
+            [df[c].astype(str) for c in columns],
             ""
         )
 
