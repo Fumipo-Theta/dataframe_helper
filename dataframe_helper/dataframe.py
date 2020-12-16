@@ -21,7 +21,7 @@ def time_range(f):
 _invalid_range = [None, pd.NaT, np.nan, math.nan]
 
 
-def right_open_interval(lower, upper)->DataFrameTransformer:
+def right_open_interval(lower, upper) -> DataFrameTransformer:
     def apply(df: pd.DataFrame, column=None) -> pd.DataFrame:
         dt = df.index if column is None else df[column]
         if lower not in _invalid_range and upper not in _invalid_range:
@@ -35,7 +35,7 @@ def right_open_interval(lower, upper)->DataFrameTransformer:
     return apply
 
 
-def left_open_interval(lower, upper)->DataFrameTransformer:
+def left_open_interval(lower, upper) -> DataFrameTransformer:
     def apply(df: pd.DataFrame, column=None) -> pd.DataFrame:
         dt = df.index if column is None else df[column]
         if lower not in _invalid_range and upper not in _invalid_range:
@@ -49,7 +49,7 @@ def left_open_interval(lower, upper)->DataFrameTransformer:
     return apply
 
 
-def open_interval(lower, upper)->DataFrameTransformer:
+def open_interval(lower, upper) -> DataFrameTransformer:
     def apply(df: pd.DataFrame, column=None) -> pd.DataFrame:
         dt = df.index if column is None else df[column]
 
@@ -64,7 +64,7 @@ def open_interval(lower, upper)->DataFrameTransformer:
     return apply
 
 
-def close_interval(lower, upper)->DataFrameTransformer:
+def close_interval(lower, upper) -> DataFrameTransformer:
     def apply(df: pd.DataFrame, column=None) -> pd.DataFrame:
         dt = df.index if column is None else df[column]
         if lower not in _invalid_range and upper not in _invalid_range:
@@ -78,7 +78,7 @@ def close_interval(lower, upper)->DataFrameTransformer:
     return apply
 
 
-def filter_between(*range, open_left=False, open_right=True)->DataFrameTransformer:
+def filter_between(*range, open_left=False, open_right=True) -> DataFrameTransformer:
     """
     filter_between(lower, upper) -> [lower, upper)
     filter_between(lower, None) -> [lower, inf)
@@ -109,7 +109,7 @@ def filter_between(*range, open_left=False, open_right=True)->DataFrameTransform
         return close_interval(lower, upper)
 
 
-def to_datetime(*column_names)->DataFrameTransformer:
+def to_datetime(*column_names) -> DataFrameTransformer:
     """
     Convert a column or columns to datetime expression of pandas.
 
@@ -124,7 +124,7 @@ def to_datetime(*column_names)->DataFrameTransformer:
     columns = column_names[0] if type(
         column_names[0]) == list else list(column_names)
 
-    def f(df: pd.DataFrame)->pd.DataFrame:
+    def f(df: pd.DataFrame) -> pd.DataFrame:
         datetime_str = reduce(
             lambda a, e: a+" "+e.apply(str),
             [df[c] for c in columns],
@@ -161,7 +161,7 @@ def setTimeSeriesIndex(*columnName, name=None, inplace=True):
     columns = columnName[0] if type(
         columnName[0]) == list else list(columnName)
 
-    def f(df: pd.DataFrame)->pd.DataFrame:
+    def f(df: pd.DataFrame) -> pd.DataFrame:
         datetime_str = reduce(
             lambda a, e: a+" "+e,
             [df[c].astype(str) for c in columns],
@@ -208,11 +208,11 @@ def flatten_table(primary_key: str, concat_keys_func=lambda p, c: f"{p}-{c}"):
 
 
     """
-    def apply(df: pd.DataFrame, primary_name, data_name)->pd.DataFrame:
+    def apply(df: pd.DataFrame, primary_name, data_name) -> pd.DataFrame:
         new_data = [[], []]
         for i, row in df.iterrows():
             for col in df.columns:
-                if col is primary_key:
+                if col == primary_key:
                     pass
                 else:
                     new_data[0].append(concat_keys_func(row[primary_key], col))
@@ -315,7 +315,7 @@ def create_complete_block_designed_df(mat_selector, group_selector, block_select
     return apply
 
 
-def create_bands(ini: Number, fin: Number, step: Number, with_outer: bool=True)\
+def create_bands(ini: Number, fin: Number, step: Number, with_outer: bool = True)\
         -> List[Tuple[float, float]]:
     """
     Create list of tuples defining lower and upper limits.
@@ -356,7 +356,7 @@ def create_bands(ini: Number, fin: Number, step: Number, with_outer: bool=True)\
     return level
 
 
-def _get_factor_of_bands(bands: List[Tuple[Number, Number]])->List[str]:
+def _get_factor_of_bands(bands: List[Tuple[Number, Number]]) -> List[str]:
     """
     """
     def stringifier(band: Tuple[Number, Number]):
@@ -371,8 +371,8 @@ def _get_factor_of_bands(bands: List[Tuple[Number, Number]])->List[str]:
     return list(map(stringifier, bands))
 
 
-def _get_mean_of_bands(bands: List[Tuple[Number, Number]])->List[float]:
-    def apply(band: Tuple[Number, Number])->Number:
+def _get_mean_of_bands(bands: List[Tuple[Number, Number]]) -> List[float]:
+    def apply(band: Tuple[Number, Number]) -> Number:
         fst, snd = band
         return 0.5*(fst+snd)
     return list(map(apply, bands))
@@ -391,13 +391,13 @@ def _get_index_of_bands(bands):
 
 
 def _i_position_selector(position_type):
-    if position_type is "index":
+    if position_type == "index":
         return _get_index_of_bands
-    if position_type is "center":
+    if position_type == "center":
         return _get_mean_of_bands
-    if position_type is "lower":
+    if position_type == "lower":
         return _get_lower_of_bands
-    if position_type is "upper":
+    if position_type == "upper":
         return _get_upper_of_bands
     raise Exception(
         f"position_type{position_type} can not be recognized ! Choose 'index|lower|center|upper'.")
@@ -405,10 +405,10 @@ def _i_position_selector(position_type):
 
 def band_factor(
     bands: List[Tuple[Number, Number]],
-    position: str="index",
+    position: str = "index",
     right=False,
     **kwargs
-)->Callable[[pd.DataFrame, Optional[str]], Tuple[pd.Series, List[str]]]:
+) -> Callable[[pd.DataFrame, Optional[str]], Tuple[pd.Series, List[str]]]:
     """
     Limit of bands must increase monotonic.
 
@@ -428,8 +428,8 @@ def band_factor(
     cut_array = list(map(lambda band: band[0], bands))
     cut_array.append(bands[-1][1])
 
-    def apply_to_df(df: pd.DataFrame, selector: Optional[str]=None)\
-            ->Tuple[pd.Series, List[str]]:
+    def apply_to_df(df: pd.DataFrame, selector: Optional[str] = None)\
+            -> Tuple[pd.Series, List[str]]:
 
         target = df if selector is None else df[selector]
 
